@@ -283,6 +283,7 @@
         <button id="setCustomBtn">設定</button>
       </div>
       <div class="timer-display" id="timerDisplay">05:00</div>
+      <button id="deviceBtn" style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 8px; width: 100%;">🔊 音声出力デバイス</button>
     </div>
 
        <div id="controls">
@@ -293,7 +294,7 @@
     </div>
 
     <div id="stage">
-      <video id="video" playsinline></video>
+      <video id="video" autoplay muted playsinline></video>
       <canvas id="overlay"></canvas>
     </div>
 
@@ -462,9 +463,23 @@ setCustomBtn.addEventListener('click', () => {
 
 async function startCamera() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }});
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
     video.srcObject = stream;
-    await video.play();
+    
+    // スマホ対応：再生開始を明示的に実行
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.warn('ビデオ再生エラー:', error);
+      });
+    }
     
     async function frameLoop() {
       if (video.readyState >= 2) {
@@ -475,7 +490,7 @@ async function startCamera() {
     frameLoop();
     statusEl.textContent = '📹 カメラ動作中。顔を検出待ち...';
   } catch (e) {
-    statusEl.textContent = '❌ エラー: カメラにアクセスできません。';
+    statusEl.textContent = '❌ エラー: カメラアクセスが拒否されました。ブラウザの設定を確認してください。';
     console.error(e);
   }
 }
@@ -660,7 +675,17 @@ if (video) {
   startCamera();
 }
 
-addDeviceButton();
+// デバイス選択ボタンのイベント設定
+const deviceBtn = document.getElementById('deviceBtn');
+deviceBtn.addEventListener('mouseenter', function() {
+  this.style.transform = 'translateY(-2px)';
+  this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+});
+deviceBtn.addEventListener('mouseleave', function() {
+  this.style.transform = 'translateY(0)';
+  this.style.boxShadow = 'none';
+});
+deviceBtn.addEventListener('click', showDeviceModal);
 
 // デバイス選択モーダル表示
 function showDeviceModal() {
@@ -702,37 +727,11 @@ deviceCloseBtn.addEventListener('click', () => {
   deviceModal.style.display = 'none';
 });
 
-// 設定ボタンを追加
-function addDeviceButton() {
-  const timeSettings = document.querySelector('#timeSettings');
-  if (!timeSettings.querySelector('#deviceBtn')) {
-    const deviceBtn = document.createElement('button');
-    deviceBtn.id = 'deviceBtn';
-    deviceBtn.textContent = '🔊 音声出力デバイス';
-    deviceBtn.style.cssText = `
-      padding: 8px 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 8px;
-      width: 100%;
-    `;
-    deviceBtn.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-2px)';
-      this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
-    });
-    deviceBtn.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = 'none';
-    });
-    deviceBtn.addEventListener('click', showDeviceModal);
-    timeSettings.appendChild(deviceBtn);
-  }
+updateTimerDisplay();
+
+// ビデオ要素がある場合のみカメラを起動
+if (video) {
+  startCamera();
 }
 </script>
 </body>
