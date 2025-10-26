@@ -4,33 +4,334 @@
   <meta charset="utf-8" />
   <title>桜井タイマー</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP"; padding: 16px; }
-    #stage { position: relative; width: 640px; }
-    video, canvas { width: 100%; height: auto; border-radius: 6px; background: #000; }
-    #controls { margin-top: 8px; display:flex; gap:8px; }
-    button:disabled { opacity: 0.5; }
-    #status { margin-top:8px; font-weight:600; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Segoe UI', 'Noto Sans JP', system-ui, -apple-system; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+    }
+    
+    h1 {
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 32px;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    #timeSettings {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 24px;
+    }
+
+    #timeSettings h4 {
+      color: #333;
+      margin-bottom: 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .preset-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .preset-btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .preset-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .preset-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    .custom-time {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .custom-time label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .custom-time input {
+      width: 70px;
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: border-color 0.3s ease;
+    }
+
+    .custom-time input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    #setCustomBtn {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    #setCustomBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .timer-display {
+      text-align: center;
+      font-size: 48px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-top: 12px;
+      letter-spacing: 2px;
+      font-family: 'Courier New', monospace;
+    }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      background: #000;
+    }
+
+    video, canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    #controls button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    #startBtn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    #pauseBtn {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+
+    #stopBtn {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+
+    #resetBtn {
+      background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+      color: white;
+    }
+
+    #controls button:hover:not(:disabled) {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    #controls button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #status {
+      background: #f0f4f8;
+      padding: 16px;
+      border-radius: 10px;
+      text-align: center;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+      border-left: 4px solid #667eea;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .timer-display {
+        font-size: 36px;
+      }
+
+      #controls {
+        flex-direction: column;
+      }
+
+      #controls button {
+        width: 100%;
+        min-width: unset;
+      }
+
+      .preset-buttons {
+        gap: 6px;
+      }
+
+      .preset-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>桜井タイマー</h2>
-  <div id="stage">
-    <video id="video" autoplay muted playsinline></video>
-    <canvas id="overlay"></canvas>
+  <div class="container">
+    <h1>⏱️ 桜井タイマー</h1>
+    <p class="subtitle">集中力を高める顔認識タイマー</p>
+    
+    <div id="timeSettings">
+      <h4>⏰ タイマー設定</h4>
+      <div class="preset-buttons">
+        <button class="preset-btn" data-seconds="60">1分</button>
+        <button class="preset-btn" data-seconds="180">3分</button>
+        <button class="preset-btn active" data-seconds="300">5分</button>
+        <button class="preset-btn" data-seconds="600">10分</button>
+        <button class="preset-btn" data-seconds="900">15分</button>
+        <button class="preset-btn" data-seconds="1500">25分</button>
+        <button class="preset-btn" data-seconds="1800">30分</button>
+        <button class="preset-btn" data-seconds="3600">60分</button>
+      </div>
+      <div class="custom-time">
+        <label>カスタム:</label>
+        <input type="number" id="customMinutes" min="1" max="999" placeholder="分">
+        <label>分</label>
+        <input type="number" id="customSeconds" min="0" max="59" placeholder="秒">
+        <label>秒</label>
+        <button id="setCustomBtn">設定</button>
+      </div>
+      <div class="timer-display" id="timerDisplay">05:00</div>
+    </div>
+
+       <div id="controls">
+      <button id="startBtn">▶️ Start</button>
+      <button id="pauseBtn" disabled>⏸️ Pause</button>
+      <button id="stopBtn" disabled>⏹️ Stop</button>
+      <button id="resetBtn">🔄 Reset</button>
+    </div>
+
+    <div id="stage">
+      <video id="video" playsinline></video>
+      <canvas id="overlay"></canvas>
+    </div>
+
+    <div id="status">状態: 初期化中…</div>
   </div>
 
-  <div id="controls">
-    <button id="startBtn">Start 5:00</button>
-    <button id="pauseBtn" disabled>Pause</button>
-    <button id="stopBtn" disabled>Stop (requires face)</button>
+  <!-- 音声/動画再生用 -->
+  <audio id="completeSound" preload="auto" loop></audio>
+  <video id="completeVideo" preload="auto" loop style="display:none;"></video>
+
+  <!-- 動画表示用モーダル -->
+  <div id="videoModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; display:none; justify-content:center; align-items:center;">
+    <div style="position:relative; max-width:90%; max-height:90%; border-radius:15px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      <video id="videoPlayer" style="width:100%; height:auto; display:block;" loop></video>
+      <button id="videoCloseBtn" style="position:absolute; top:10px; right:10px; width:40px; height:40px; border:none; border-radius:50%; background:#ff6b6b; color:white; font-size:20px; cursor:pointer; z-index:1001;">✕</button>
+    </div>
   </div>
 
-  <div id="status">状態: 初期化中…</div>
+  <!-- デバイス選択ダイアログ -->
+  <div id="deviceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:flex; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:15px; padding:30px; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <h3 style="margin-bottom:16px; color:#333;">🔊 音声出力デバイスを選択</h3>
+      <select id="deviceSelect" style="width:100%; padding:10px; border:2px solid #667eea; border-radius:6px; font-size:14px; margin-bottom:16px;">
+        <option>デバイスを読み込み中...</option>
+      </select>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button id="deviceCloseBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:6px; cursor:pointer;">キャンセル</button>
+        <button id="deviceConfirmBtn" style="padding:8px 16px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; border-radius:6px; cursor:pointer;">決定</button>
+      </div>
+    </div>
+  </div>
 
-<script type="module">
-import FaceDetection from 'https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/face_detection.js';
-import { drawConnectors, drawLandmarks } from 'https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.4.1646425229/drawing_utils.js';
-
+<!-- MediaPipeをスクリプトタグで読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+<script>
 const video = document.getElementById('video');
 const canvas = document.getElementById('overlay');
 const ctx = canvas.getContext('2d');
@@ -38,39 +339,133 @@ const statusEl = document.getElementById('status');
 const startBtn = document.getElementById('startBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const stopBtn = document.getElementById('stopBtn');
+const resetBtn = document.getElementById('resetBtn');
+const timerDisplay = document.getElementById('timerDisplay');
+const customMinutes = document.getElementById('customMinutes');
+const customSeconds = document.getElementById('customSeconds');
+const setCustomBtn = document.getElementById('setCustomBtn');
+const completeSound = document.getElementById('completeSound');
+const completeVideo = document.getElementById('completeVideo');
+const videoPlayer = document.getElementById('videoPlayer');
+const videoModal = document.getElementById('videoModal');
+const videoCloseBtn = document.getElementById('videoCloseBtn');
+const deviceModal = document.getElementById('deviceModal');
+const deviceSelect = document.getElementById('deviceSelect');
+const deviceCloseBtn = document.getElementById('deviceCloseBtn');
+const deviceConfirmBtn = document.getElementById('deviceConfirmBtn');
 
-let timerSeconds = 5 * 60; // 初期 5分
+// メディアファイルのパスを設定（MP3またはMP4）
+// 例: './complete.mp3' または './celebration.mp4'
+const mediaFile = './complete.mp4';
+const isVideo = mediaFile.endsWith('.mp4');
+
+if (isVideo) {
+  completeVideo.src = mediaFile;
+  videoPlayer.src = mediaFile;
+} else {
+  completeSound.src = mediaFile;
+}
+
+let initialSeconds = 5 * 60;
+let timerSeconds = initialSeconds;
 let timerId = null;
 let running = false;
 let facePresent = false;
-let facePresentSince = 0; // 連続検出開始のタイムスタンプ
+let facePresentSince = 0;
+let isCompleteSound = false; // 完了音が鳴っているか
 
-// 描画サイズ合わせ
+// デバイス情報取得
+async function loadAudioDevices() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioOutputDevices = devices.filter(device => device.kind === 'audiooutput');
+    
+    deviceSelect.innerHTML = '';
+    audioOutputDevices.forEach((device, index) => {
+      const option = document.createElement('option');
+      option.value = device.deviceId;
+      option.textContent = device.label || `スピーカー ${index + 1}`;
+      deviceSelect.appendChild(option);
+    });
+    
+    if (audioOutputDevices.length === 0) {
+      deviceSelect.innerHTML = '<option>利用可能なデバイスがありません</option>';
+    }
+  } catch (err) {
+    console.error('デバイス取得エラー:', err);
+    deviceSelect.innerHTML = '<option>デバイス取得に失敗しました</option>';
+  }
+}
+
+// ページ読み込み時にオーディオデバイスを初期化
+document.addEventListener('DOMContentLoaded', () => {
+  loadAudioDevices();
+});
+
+function updateTimerDisplay() {
+  timerDisplay.textContent = formatTime(timerSeconds);
+}
+
 function resizeCanvas() {
+  if (!canvas) return;
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 }
 video.addEventListener('loadedmetadata', resizeCanvas);
 
-// MediaPipe FaceDetection セットアップ
 const faceDetection = new FaceDetection({
-  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/${file}`
+  locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
 });
 
 faceDetection.setOptions({
-  model: 'short',         // 'short' or 'full'（軽量/精度トレードオフ）
+  model: 'short',
   minDetectionConfidence: 0.6
 });
 
 faceDetection.onResults(onResults);
 
-// カメラ取得
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (running) return;
+    
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    const seconds = parseInt(btn.dataset.seconds);
+    initialSeconds = seconds;
+    timerSeconds = seconds;
+    updateTimerDisplay();
+  });
+});
+
+setCustomBtn.addEventListener('click', () => {
+  if (running) return;
+  
+  const minutes = parseInt(customMinutes.value) || 0;
+  const seconds = parseInt(customSeconds.value) || 0;
+  const totalSeconds = minutes * 60 + seconds;
+  
+  if (totalSeconds <= 0) {
+    alert('1秒以上の時間を設定してください。');
+    return;
+  }
+  
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  
+  initialSeconds = totalSeconds;
+  timerSeconds = totalSeconds;
+  updateTimerDisplay();
+  
+  customMinutes.value = '';
+  customSeconds.value = '';
+});
+
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }});
     video.srcObject = stream;
     await video.play();
-    // MediaPipe へフレーム送信ループ
+    
     async function frameLoop() {
       if (video.readyState >= 2) {
         await faceDetection.send({image: video});
@@ -78,36 +473,36 @@ async function startCamera() {
       requestAnimationFrame(frameLoop);
     }
     frameLoop();
-    statusEl.textContent = '状態: カメラ動作中。顔を検出待ち...';
+    statusEl.textContent = '📹 カメラ動作中。顔を検出待ち...';
   } catch (e) {
-    statusEl.textContent = 'エラー: カメラにアクセスできません。HTTPSで開いているか確認してください。';
+    statusEl.textContent = '❌ エラー: カメラにアクセスできません。';
     console.error(e);
   }
 }
 
-// FaceDetection 結果処理
 function onResults(results) {
-  // 描画クリア
+  if (!canvas || !ctx) return;
   ctx.clearRect(0,0,canvas.width, canvas.height);
 
   const now = performance.now();
   if (results.detections && results.detections.length > 0) {
     facePresent = true;
     if (!facePresentSince) facePresentSince = now;
-    // 簡易的にバウンディングボックスを描画
     for (const det of results.detections) {
       const box = det.boundingBox;
       const x = box.xCenter - box.width/2;
       const y = box.yCenter - box.height/2;
-      ctx.strokeStyle = 'lime';
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 4;
+      ctx.shadowColor = 'rgba(0,255,0,0.5)';
+      ctx.shadowBlur = 10;
       ctx.strokeRect(x * canvas.width, y * canvas.height, box.width * canvas.width, box.height * canvas.height);
-      // ランドマークがあれば描画（MediaPipeのデータ構造による）
+      ctx.shadowColor = 'transparent';
       if (det.keypoints) {
         for (const kp of det.keypoints) {
-          ctx.fillStyle = 'yellow';
+          ctx.fillStyle = '#ffff00';
           ctx.beginPath();
-          ctx.arc(kp.x * canvas.width, kp.y * canvas.height, 3, 0, Math.PI*2);
+          ctx.arc(kp.x * canvas.width, kp.y * canvas.height, 4, 0, Math.PI*2);
           ctx.fill();
         }
       }
@@ -117,22 +512,17 @@ function onResults(results) {
     facePresentSince = 0;
   }
 
-  // UI更新
-  statusEl.textContent = `状態: ${facePresent ? '顔検出中' : '顔なし'} | タイマー: ${formatTime(timerSeconds)}`;
-  // Stop許可条件：顔が直近で検出されている（ここでは0.5秒以上連続検出を要件に）
+  statusEl.textContent = `${facePresent ? '✅ 顔検出中' : '⭕ 顔なし'} | ${running ? '⏱️ タイマー実行中' : '🔔 タイマー停止中'}${isCompleteSound ? (isVideo ? ' 🎬 動画再生中' : ' 🔊 音声再生中') : ''}`;
   const enoughContinuous = facePresent && (performance.now() - facePresentSince) > 500;
-  stopBtn.disabled = !enoughContinuous;
-  pauseBtn.disabled = !running;
+  stopBtn.disabled = !enoughContinuous || !running;
 }
 
-// タイマー表示フォーマット
 function formatTime(s) {
   const mm = String(Math.floor(s/60)).padStart(2,'0');
   const ss = String(s % 60).padStart(2,'0');
   return `${mm}:${ss}`;
 }
 
-// タイマー操作
 function startTimer() {
   if (running) return;
   running = true;
@@ -142,10 +532,32 @@ function startTimer() {
     if (timerSeconds <= 0) {
       clearInterval(timerId);
       running = false;
-      statusEl.textContent = '完了！';
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      statusEl.textContent = '🎉 完了！お疲れ様でした！';
+      
+      // メディア再生（MP3またはMP4）
+      isCompleteSound = true;
+      if (isVideo) {
+        videoModal.style.display = 'flex';
+        videoPlayer.currentTime = 0;
+        videoPlayer.play().catch(err => {
+          console.warn('動画再生に失敗しました:', err);
+        });
+      } else {
+        completeSound.currentTime = 0;
+        completeSound.play().catch(err => {
+          console.warn('音声再生に失敗しました:', err);
+        });
+      }
+      
+      if (Notification.permission === 'granted') {
+        new Notification('桜井タイマー', { body: 'タイマーが完了しました！' });
+      }
       return;
     }
     timerSeconds--;
+    updateTimerDisplay();
   }, 1000);
 }
 
@@ -158,34 +570,170 @@ function pauseTimer() {
 }
 
 function stopTimer() {
-  // 停止処理は onResults の条件で stopBtn が有効なときのみ呼ばれる
   clearInterval(timerId);
   running = false;
-  timerSeconds = 5 * 60; // リセット（必要に応じ変更）
+  timerSeconds = initialSeconds;
   startBtn.disabled = false;
   pauseBtn.disabled = true;
   stopBtn.disabled = true;
-  statusEl.textContent = '停止しました（リセット）。';
+  updateTimerDisplay();
+  statusEl.textContent = '🛑 停止しました（リセット）。';
+  
+  // メディア停止
+  if (isCompleteSound) {
+    if (isVideo) {
+      videoPlayer.pause();
+      videoPlayer.currentTime = 0;
+      videoModal.style.display = 'none';
+    } else {
+      completeSound.pause();
+      completeSound.currentTime = 0;
+    }
+    isCompleteSound = false;
+  }
 }
 
-// UI イベント
-startBtn.addEventListener('click', () => {
-  startTimer();
-});
-pauseBtn.addEventListener('click', () => {
-  pauseTimer();
-});
+function resetTimer() {
+  if (running) {
+    clearInterval(timerId);
+    running = false;
+  }
+  timerSeconds = initialSeconds;
+  startBtn.disabled = false;
+  pauseBtn.disabled = true;
+  stopBtn.disabled = true;
+  updateTimerDisplay();
+  statusEl.textContent = '🔄 リセットしました。';
+  
+  // メディア停止
+  if (isCompleteSound) {
+    if (isVideo) {
+      videoPlayer.pause();
+      videoPlayer.currentTime = 0;
+      videoModal.style.display = 'none';
+    } else {
+      completeSound.pause();
+      completeSound.currentTime = 0;
+    }
+    isCompleteSound = false;
+  }
+}
+
+startBtn.addEventListener('click', startTimer);
+pauseBtn.addEventListener('click', pauseTimer);
 stopBtn.addEventListener('click', () => {
-  // 二重チェック：直近で顔が検出されていることを再確認
   if (!facePresent || (performance.now() - facePresentSince) < 500) {
-    alert('顔が検出されていないため停止できません。顔をカメラに写してください。');
+    alert('顔が検出されていないため停止できません。');
     return;
   }
   stopTimer();
 });
+resetBtn.addEventListener('click', resetTimer);
 
-// 初期化
-startCamera();
+// 動画モーダルを閉じる
+videoCloseBtn.addEventListener('click', () => {
+  videoPlayer.pause();
+  videoModal.style.display = 'none';
+  if (isCompleteSound) {
+    isCompleteSound = false;
+  }
+});
+
+videoModal.addEventListener('click', (e) => {
+  if (e.target === videoModal) {
+    videoPlayer.pause();
+    videoModal.style.display = 'none';
+    if (isCompleteSound) {
+      isCompleteSound = false;
+    }
+  }
+});
+
+if (Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+updateTimerDisplay();
+
+// ビデオ要素がある場合のみカメラを起動
+if (video) {
+  startCamera();
+}
+
+addDeviceButton();
+
+// デバイス選択モーダル表示
+function showDeviceModal() {
+  deviceModal.style.display = 'flex';
+  loadAudioDevices();
+}
+
+// デバイス選択確定
+deviceConfirmBtn.addEventListener('click', async () => {
+  const selectedDeviceId = deviceSelect.value;
+  
+  // 音声と動画の両方にデバイスを設定
+  const promises = [];
+  
+  if (completeSound.setSinkId) {
+    promises.push(completeSound.setSinkId(selectedDeviceId));
+  }
+  
+  if (videoPlayer.setSinkId) {
+    promises.push(videoPlayer.setSinkId(selectedDeviceId));
+  }
+  
+  if (promises.length > 0) {
+    try {
+      await Promise.all(promises);
+      console.log('デバイス変更成功:', selectedDeviceId);
+      deviceModal.style.display = 'none';
+    } catch (err) {
+      console.error('デバイス変更エラー:', err);
+      alert('選択したデバイスに変更できませんでした。');
+    }
+  } else {
+    deviceModal.style.display = 'none';
+  }
+});
+
+// デバイス選択キャンセル
+deviceCloseBtn.addEventListener('click', () => {
+  deviceModal.style.display = 'none';
+});
+
+// 設定ボタンを追加
+function addDeviceButton() {
+  const timeSettings = document.querySelector('#timeSettings');
+  if (!timeSettings.querySelector('#deviceBtn')) {
+    const deviceBtn = document.createElement('button');
+    deviceBtn.id = 'deviceBtn';
+    deviceBtn.textContent = '🔊 音声出力デバイス';
+    deviceBtn.style.cssText = `
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+      width: 100%;
+    `;
+    deviceBtn.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+    });
+    deviceBtn.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = 'none';
+    });
+    deviceBtn.addEventListener('click', showDeviceModal);
+    timeSettings.appendChild(deviceBtn);
+  }
+}
 </script>
 </body>
 </html>
