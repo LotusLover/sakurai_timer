@@ -391,13 +391,32 @@ const videoCloseBtn = document.getElementById('videoCloseBtn');
 // メディアファイルのパスを設定（MP3またはMP4）
 // 例: './complete.mp3' または './celebration.mp4'
 const mediaFile = './complete.mp4';
-const isVideo = mediaFile.endsWith('.mp4');
+let isVideo = mediaFile.endsWith('.mp4');
+let mediaFileAudio = './complete.mp3'; // フォールバック用音声ファイル
 
 if (isVideo) {
   completeVideo.src = mediaFile;
   videoPlayer.src = mediaFile;
 } else {
   completeSound.src = mediaFile;
+}
+
+// MP4のフォールバック処理
+if (isVideo) {
+  videoPlayer.addEventListener('error', () => {
+    console.warn('動画の再生に失敗しました。音声に切り替えます。');
+    isVideo = false; // 動画モードを解除
+    
+    // 動画パネルを非表示
+    videoPanel.style.display = 'none';
+    
+    // 音声ファイルをセット
+    completeSound.src = mediaFileAudio;
+    completeSound.currentTime = 0;
+    completeSound.play().catch(err => {
+      console.warn('音声再生にも失敗しました:', err);
+    });
+  }, { once: true });
 }
 
 let initialSeconds = 5 * 60;
@@ -584,15 +603,29 @@ function startTimer() {
       pauseBtn.disabled = true;
       statusEl.textContent = '🎉 完了！お疲れ様でした！';
       
-      // メディア再生（MP3またはMP4）
+      // メディア再生（MP3またはMP4、フォールバック対応）
       isCompleteSound = true;
       if (isVideo) {
+        // 動画再生を試みる
         videoPanel.style.display = 'block';
         videoPlayer.currentTime = 0;
-        videoPlayer.play().catch(err => {
-          console.warn('動画再生に失敗しました:', err);
-        });
+        
+        const playPromise = videoPlayer.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.warn('動画再生エラー:', err);
+            // 動画再生失敗時は音声に切り替え
+            isVideo = false;
+            videoPanel.style.display = 'none';
+            completeSound.src = mediaFileAudio;
+            completeSound.currentTime = 0;
+            completeSound.play().catch(err => {
+              console.warn('音声再生にも失敗しました:', err);
+            });
+          });
+        }
       } else {
+        // 音声再生
         completeSound.currentTime = 0;
         completeSound.play().catch(err => {
           console.warn('音声再生に失敗しました:', err);
